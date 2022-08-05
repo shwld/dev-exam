@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  app:
+    image: ruby:3
+    command: 'bundle exec ruby app.rb -p 4567 -o 0.0.0.0'
+    working_dir: /usr/src/app
+    stdin_open: true
+    tty: true
+    environment:
+      - BUNDLE_PATH=vendor/bundle
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - db
+    ports:
+      - 4567:4567
+  db:
+    command: -c fsync=off # Required to use psql command in WSL
+    image: postgres:11
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - db:/var/lib/postgresql/data:delegated
+    ports:
+      - 5432:5432
+  data:
+    image: busybox
+    volumes:
+      - db:/var/lib/postgresql/data:delegated
+
+volumes:
+  db:
+    driver: local
